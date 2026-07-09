@@ -21,56 +21,36 @@ const devtools = mount();
 const agent = useEveAgent({ onEvent: devtools.onEvent });
 ```
 
-In a React app, use the provider from `eve-devtools/react` instead. Wrap the app once; `enabled` limits the panel to development builds:
+`onEvent(event)` feeds one stream event; unknown events are ignored, so any `HandleMessageStreamEvent` can be passed through unfiltered. Call `devtools.unmount()` to remove the panel.
+
+## React
+
+Wrap the app once in `EveDevtoolsProvider`. `enabled` limits the panel to development builds (React is an optional peer dependency, only needed for this entry):
 
 ```tsx
 import { EveDevtoolsProvider } from "eve-devtools/react";
 
-<EveDevtoolsProvider enabled={process.env.NODE_ENV === "development"}>
-  <App />
-</EveDevtoolsProvider>
+function Root() {
+  return (
+    <EveDevtoolsProvider enabled={process.env.NODE_ENV === "development"}>
+      <App />
+    </EveDevtoolsProvider>
+  );
+}
 ```
 
-Anywhere below the provider, read the handle and pass its `onEvent` to the agent:
+Anywhere below the provider, read the handle with `useEveDevtools()` and pass its `onEvent` to the agent. The handle is `undefined` until the provider has mounted, so guard the call:
 
 ```tsx
 import { useEveDevtools } from "eve-devtools/react";
 
-const devtools = useEveDevtools();
-const agent = useEveAgent({ onEvent: devtools?.onEvent });
-```
+function Chat() {
+  const devtools = useEveDevtools();
+  const agent = useEveAgent({ onEvent: devtools?.onEvent });
 
-The same wiring works wherever events are available:
-
-```ts
-// with an EveAgentStore
-store.setCallbacks({ onEvent: devtools.onEvent });
-
-// iterating a ClientSession stream
-for await (const event of response) {
-  devtools.onEvent(event);
+  return <Conversation agent={agent} />;
 }
 ```
-
-If the app restores a conversation from persisted events (`initialEvents`), replay them once so the trace covers the whole conversation, not just what streams from then on:
-
-```ts
-for (const event of savedEvents) {
-  devtools.onEvent(event);
-}
-```
-
-## API
-
-`mount(root?)` renders the panel into `root` (default: `document.body`) and returns an `EveDevtools` handle:
-
-- `onEvent(event)` — feed one stream event. Events the panel does not know are ignored, so any `HandleMessageStreamEvent` can be passed through unfiltered.
-- `unmount()` — remove the panel and clean up.
-
-`eve-devtools/react` wraps the lifecycle for React apps (React is an optional peer dependency, only needed for this entry):
-
-- `<EveDevtoolsProvider enabled?>` — mounts the panel while rendered and shares the handle through context.
-- `useEveDevtools()` — returns the `EveDevtools` handle, or `undefined` until the provider has mounted it.
 
 ## Develop
 
