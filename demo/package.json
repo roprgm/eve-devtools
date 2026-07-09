@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "eve build && vite build"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

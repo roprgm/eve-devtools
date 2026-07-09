@@ -1,5 +1,5 @@
 import { Client } from "eve/client";
-import { mount } from "../index";
+import { mount } from "../../index";
 
 const devtools = mount();
 const session = new Client({ host: window.location.origin }).session();
