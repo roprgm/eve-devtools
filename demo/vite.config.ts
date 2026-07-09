@@ -6,7 +6,6 @@ const port = parseInt(process.env.PORT ?? "3000", 10);
 const agentPort = 2000;
 
 export default defineConfig({
-  root: "app",
   server: {
     port,
     open: true,

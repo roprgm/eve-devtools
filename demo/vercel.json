@@ -1,0 +1,21 @@
+{
+  "outputDirectory": "dist",
+  "redirects": [
+    {
+      "source": "/eve/v1/session",
+      "destination": "/mock/session.json",
+      "statusCode": 303
+    },
+    {
+      "source": "/eve/v1/session/:sessionId",
+      "destination": "/mock/session.json",
+      "statusCode": 303
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/eve/v1/session/:sessionId/stream",
+      "destination": "/mock/tokyo.ndjson"
+    }
+  ]
+}
