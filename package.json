@@ -1,6 +1,6 @@
 {
   "name": "eve-devtools",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "In-app devtools for eve agents: a live trace panel for turns, reasoning, tool calls, and token usage.",
   "author": "Rodrigo Belfiore",
   "license": "MIT",
