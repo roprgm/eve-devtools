@@ -2,7 +2,7 @@
 
 In-app devtools for [eve](https://github.com/vercel/eve) agents: a floating panel that shows what the agent is doing, live — turns, reasoning, tool calls with their inputs and outputs, token usage, and timing.
 
-The panel renders in an isolated shadow root, so it never collides with the app's styles. It has no dependency on eve: the app hands it the agent's events. Its only network request is loading the Geist font from Google Fonts.
+The panel renders in an isolated shadow root, so it never collides with the app's styles. It has no dependency on eve: the app hands it the agent's events. It makes no network requests.
 
 ## Install
 
@@ -76,9 +76,11 @@ for (const event of savedEvents) {
 
 ```sh
 bun install
-bun run dev    # demo page that replays a sample conversation
+bun run dev    # demo page plus a minimal eve agent it traces live
 bun run check  # lint, format, and types
 ```
+
+The demo lives in `demo/` as its own package: a vite app, a minimal eve agent, and a vite plugin that runs the agent inside the dev server. The agent calls its model through the Vercel AI Gateway, so set `AI_GATEWAY_API_KEY` in `demo/.env.local`.
 
 ## License
 

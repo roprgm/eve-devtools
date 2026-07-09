@@ -1,15 +1,19 @@
 @import "tailwindcss";
 
+/* The panel's classes live next to this file; scan them explicitly so
+   builds work no matter which package (lib or demo) runs them. */
+@source "./";
+
 @theme {
-  --color-background: #0a0a0a;
+  --color-background: #121212;
   --color-foreground: #fafafa;
   --color-surface-1: #171717;
-  --color-surface-2: #212121;
-  --color-surface-3: #2a2a2a;
+  --color-surface-2: #232323;
+  --color-surface-3: #2c2c2c;
   --color-line-1: #262626;
   --color-line-2: #404040;
   --color-line-3: #525252;
-  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
   --shadow-panel: 0 2px 12px #00000059;
   --shadow-panel-open: 0 4px 12px #0000004d, 0 16px 40px #00000066;
 }
@@ -17,7 +21,7 @@
 :host {
   all: initial;
   color-scheme: dark;
-  font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+  font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
