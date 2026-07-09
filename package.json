@@ -1,0 +1,57 @@
+{
+  "name": "eve-devtools",
+  "version": "0.0.1",
+  "description": "In-app devtools for eve agents: a live trace panel for turns, reasoning, tool calls, and token usage.",
+  "author": "Rodrigo Belfiore",
+  "license": "MIT",
+  "repository": "github:roprgm/eve-devtools",
+  "keywords": [
+    "eve",
+    "devtools",
+    "agents",
+    "trace"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "prepack": "bun run build",
+    "check": "biome check . && tsc --noEmit",
+    "fix": "biome check --write ."
+  },
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.2",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/react": "^19.2.17",
+    "cnfast": "^0.0.8",
+    "lucide-preact": "^1.23.0",
+    "preact": "^10.29.4",
+    "react": "^19.2.7",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^6.0.3",
+    "vite": "^8.1.3",
+    "vite-plugin-dts": "^5.0.3"
+  }
+}

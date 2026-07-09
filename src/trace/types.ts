@@ -1,0 +1,41 @@
+export type TurnStatus = "running" | "completed" | "failed";
+
+export type ActionStatus =
+  | "running"
+  | "completed"
+  | "failed"
+  | "rejected"
+  | "aborted";
+
+// Token usage, as eve reports it on each `step.completed` event.
+export type Usage = {
+  inputTokens?: number;
+  outputTokens?: number;
+};
+
+export type Action = {
+  callId: string;
+  name: string;
+  status: ActionStatus;
+  startedAt?: string; // ISO timestamp, from the event's `meta.at`
+  durationMs?: number;
+  input?: unknown;
+  output?: unknown;
+};
+
+export type Step = {
+  index: number;
+  reasoning?: string;
+  response?: string;
+  usage?: Usage;
+  actions: Action[];
+};
+
+export type Turn = {
+  id: string;
+  status: TurnStatus;
+  prompt?: string;
+  startedAt?: string; // ISO timestamp, from the event's `meta.at`
+  durationMs?: number;
+  steps: Step[];
+};

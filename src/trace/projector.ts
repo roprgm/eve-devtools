@@ -1,0 +1,190 @@
+import type { ActionRequest, TraceEvent } from "@/trace/events";
+import type { Action, Step, Turn } from "@/trace/types";
+
+export type Projector = {
+  push: (event: TraceEvent) => void;
+};
+
+function actionName(request: ActionRequest): string {
+  return request.toolName ?? request.name ?? request.kind ?? "action";
+}
+
+function millisBetween(
+  start: string | undefined,
+  end: string | undefined,
+): number | undefined {
+  if (start === undefined || end === undefined) {
+    return undefined;
+  }
+  return Date.parse(end) - Date.parse(start);
+}
+
+// Folds eve stream events into the Turn tree, calling onChange with a fresh
+// snapshot after every event. The wire only reports completed, failed, and
+// rejected action results; running and aborted are synthesized here.
+export function createProjector(onChange: (turns: Turn[]) => void): Projector {
+  const turns: Turn[] = [];
+  const actionsByCallId = new Map<string, Action>();
+
+  function turnById(turnId: string): Turn | undefined {
+    return turns.find((turn) => turn.id === turnId);
+  }
+
+  function stepAt(turnId: string, stepIndex: number): Step | undefined {
+    const turn = turnById(turnId);
+    if (turn === undefined) {
+      return undefined;
+    }
+    let step = turn.steps.find((candidate) => candidate.index === stepIndex);
+    if (step === undefined) {
+      step = { index: stepIndex, actions: [] };
+      turn.steps.push(step);
+    }
+    return step;
+  }
+
+  function abortRunningActions() {
+    for (const action of actionsByCallId.values()) {
+      if (action.status === "running") {
+        action.status = "aborted";
+      }
+    }
+  }
+
+  function apply(event: TraceEvent) {
+    switch (event.type) {
+      case "turn.started": {
+        turns.push({
+          id: event.data.turnId,
+          status: "running",
+          startedAt: event.meta?.at,
+          steps: [],
+        });
+        return;
+      }
+      case "message.received": {
+        const turn = turnById(event.data.turnId);
+        if (turn !== undefined) {
+          turn.prompt = event.data.message;
+        }
+        return;
+      }
+      case "step.started": {
+        stepAt(event.data.turnId, event.data.stepIndex);
+        return;
+      }
+      case "reasoning.appended": {
+        if (event.data.reasoningSoFar === "") {
+          return;
+        }
+        const step = stepAt(event.data.turnId, event.data.stepIndex);
+        if (step !== undefined) {
+          step.reasoning = event.data.reasoningSoFar;
+        }
+        return;
+      }
+      case "reasoning.completed": {
+        const step = stepAt(event.data.turnId, event.data.stepIndex);
+        if (step !== undefined) {
+          step.reasoning = event.data.reasoning;
+        }
+        return;
+      }
+      case "message.appended": {
+        if (event.data.messageSoFar === "") {
+          return;
+        }
+        const step = stepAt(event.data.turnId, event.data.stepIndex);
+        if (step !== undefined) {
+          step.response = event.data.messageSoFar;
+        }
+        return;
+      }
+      case "message.completed": {
+        if (event.data.message === null) {
+          return;
+        }
+        const step = stepAt(event.data.turnId, event.data.stepIndex);
+        if (step !== undefined) {
+          step.response = event.data.message;
+        }
+        return;
+      }
+      case "step.completed": {
+        const step = stepAt(event.data.turnId, event.data.stepIndex);
+        if (step !== undefined) {
+          step.usage = event.data.usage;
+        }
+        return;
+      }
+      case "actions.requested": {
+        const step = stepAt(event.data.turnId, event.data.stepIndex);
+        if (step === undefined) {
+          return;
+        }
+        for (const request of event.data.actions) {
+          const action: Action = {
+            callId: request.callId,
+            name: actionName(request),
+            status: "running",
+            startedAt: event.meta?.at,
+            input: request.input,
+          };
+          actionsByCallId.set(request.callId, action);
+          step.actions.push(action);
+        }
+        return;
+      }
+      case "action.result": {
+        const action = actionsByCallId.get(event.data.result.callId);
+        if (action === undefined) {
+          return;
+        }
+        action.status = event.data.status;
+        action.durationMs = millisBetween(action.startedAt, event.meta?.at);
+        if (event.data.result.output !== undefined) {
+          action.output = event.data.result.output;
+        } else if (event.data.error !== undefined) {
+          action.output = event.data.error;
+        }
+        return;
+      }
+      case "turn.completed": {
+        const turn = turnById(event.data.turnId);
+        if (turn !== undefined) {
+          turn.status = "completed";
+          turn.durationMs = millisBetween(turn.startedAt, event.meta?.at);
+        }
+        return;
+      }
+      case "turn.failed": {
+        const turn = turnById(event.data.turnId);
+        if (turn !== undefined) {
+          turn.status = "failed";
+          turn.durationMs = millisBetween(turn.startedAt, event.meta?.at);
+        }
+        abortRunningActions();
+        return;
+      }
+      // A new session, or a stream replayed from the start, rebuilds the
+      // trace from scratch.
+      case "session.started": {
+        turns.length = 0;
+        actionsByCallId.clear();
+        return;
+      }
+      case "session.completed":
+      case "session.failed": {
+        abortRunningActions();
+        return;
+      }
+    }
+  }
+
+  return {
+    push(event) {
+      apply(event);
+      onChange([...turns]);
+    },
+  };
+}
