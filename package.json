@@ -26,8 +26,11 @@
   "files": [
     "dist"
   ],
+  "workspaces": [
+    "demo"
+  ],
   "scripts": {
-    "dev": "vite",
+    "dev": "cd demo && bun run dev",
     "build": "vite build",
     "prepack": "bun run build",
     "check": "biome check . && tsc --noEmit",

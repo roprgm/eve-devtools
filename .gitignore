@@ -1,5 +1,8 @@
 node_modules/
 dist/
 *.tgz
-.env.local
+.env*
+.vercel/
 .claude/
+.eve/
+.workflow-data/

@@ -3,9 +3,6 @@ import { Panel } from "@/components/panel";
 import styles from "@/styles.css?inline";
 import { createTrace } from "@/trace/trace";
 
-const fontHref =
-  "https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400&display=swap";
-
 function parentFor(root: Element | Document): Element {
   if (root instanceof Document) {
     return root.body;
@@ -18,20 +15,6 @@ function applyStyles(shadow: ShadowRoot): CSSStyleSheet {
   sheet.replaceSync(styles);
   shadow.adoptedStyleSheets = [sheet];
   return sheet;
-}
-
-// @font-face does not apply inside a shadow root, so Geist is loaded once at the
-// document level; the panel inherits it across the shadow boundary.
-function ensureFont() {
-  const id = "eve-devtools-font";
-  if (document.getElementById(id)) {
-    return;
-  }
-  const link = document.createElement("link");
-  link.id = id;
-  link.rel = "stylesheet";
-  link.href = fontHref;
-  document.head.appendChild(link);
 }
 
 // @property rules (the defaults for Tailwind's --tw-* variables) are likewise
@@ -60,7 +43,6 @@ export type EveDevtools = {
 };
 
 export function mount(root: Element | Document = document): EveDevtools {
-  ensureFont();
   const trace = createTrace();
   const host = document.createElement("div");
   parentFor(root).appendChild(host);
