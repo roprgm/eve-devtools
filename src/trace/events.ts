@@ -1,4 +1,4 @@
-import type { Usage } from "@/trace/types";
+import type { TraceError, Usage } from "@/trace/types";
 
 // Structural types for the eve stream events the devtools consume, declared
 // locally so the package does not depend on eve itself and tolerates fields
@@ -19,7 +19,7 @@ export type ActionRequest = {
 type TraceEventBody =
   | { type: "turn.started"; data: { turnId: string } }
   | { type: "turn.completed"; data: { turnId: string } }
-  | { type: "turn.failed"; data: { turnId: string } }
+  | { type: "turn.failed"; data: { turnId: string } & TraceError }
   | { type: "message.received"; data: { turnId: string; message: string } }
   | { type: "step.started"; data: { turnId: string; stepIndex: number } }
   | {
