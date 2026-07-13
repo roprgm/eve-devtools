@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "eve build && vite build"
+    "dev": "vite --mode standalone",
+    "build": "vite build"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

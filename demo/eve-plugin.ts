@@ -40,7 +40,8 @@ export type EveAgentOptions = {
 export function eveAgent(options: EveAgentOptions): Plugin {
   return {
     name: "eve-agent",
-    apply: "serve",
+    apply: (_config, { command, mode }) =>
+      command === "serve" && mode === "standalone",
     async configureServer(server) {
       const eve = await importEveHost();
       const serverUrl = `http://127.0.0.1:${options.port}/`;

@@ -1,0 +1,7 @@
+.env*
+dist
+.eve
+.output
+.workflow-data
+*.tgz
+.claude
