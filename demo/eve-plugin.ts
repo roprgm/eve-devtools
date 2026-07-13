@@ -42,6 +42,15 @@ export function eveAgent(options: EveAgentOptions): Plugin {
     name: "eve-agent",
     apply: "serve",
     async configureServer(server) {
+      // Vercel Services starts eve as its own process and routes /eve to it.
+      // Keep the embedded server only for the standalone `bun run dev` flow.
+      if (
+        process.env.VERCEL_SERVICE_TYPE !== undefined ||
+        process.env.VERCEL_DEV_PORT !== undefined
+      ) {
+        return;
+      }
+
       const eve = await importEveHost();
       const serverUrl = `http://127.0.0.1:${options.port}/`;
       const running = await eve.isActiveDevelopmentServerForApp({
