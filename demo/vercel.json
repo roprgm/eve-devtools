@@ -3,7 +3,8 @@
   "services": {
     "web": {
       "root": ".",
-      "framework": "vite"
+      "framework": "vite",
+      "devCommand": "vite"
     },
     "eve": {
       "root": ".",
