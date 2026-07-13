@@ -13,6 +13,12 @@ export type Usage = {
   outputTokens?: number;
 };
 
+export type TraceError = {
+  code: string;
+  message: string;
+  details?: unknown;
+};
+
 export type Action = {
   callId: string;
   name: string;
@@ -34,6 +40,7 @@ export type Step = {
 export type Turn = {
   id: string;
   status: TurnStatus;
+  error?: TraceError;
   prompt?: string;
   startedAt?: string; // ISO timestamp, from the event's `meta.at`
   durationMs?: number;

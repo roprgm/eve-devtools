@@ -161,6 +161,11 @@ export function createProjector(onChange: (turns: Turn[]) => void): Projector {
         const turn = turnById(event.data.turnId);
         if (turn !== undefined) {
           turn.status = "failed";
+          turn.error = {
+            code: event.data.code,
+            message: event.data.message,
+            details: event.data.details,
+          };
           turn.durationMs = millisBetween(turn.startedAt, event.meta?.at);
         }
         abortRunningActions();

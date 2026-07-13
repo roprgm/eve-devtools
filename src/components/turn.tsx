@@ -1,6 +1,7 @@
 import {
   ArrowDownToLine,
   ArrowUpToLine,
+  CircleAlert,
   Clock,
   CornerDownRight,
   MessageSquare,
@@ -72,6 +73,19 @@ function StepEntries({ step }: { step: Step }) {
   );
 }
 
+function TurnError({ error }: { error: NonNullable<TurnData["error"]> }) {
+  return (
+    <Entry icon={<CircleAlert class="text-red-400" />}>
+      <div class="flex min-w-0 flex-col gap-0.5">
+        <p class="text-xs text-red-400">{error.message}</p>
+        <span class="font-mono text-[10px] text-foreground/30">
+          {error.code}
+        </span>
+      </div>
+    </Entry>
+  );
+}
+
 export function Turn({ turn, index }: { turn: TurnData; index: number }) {
   return (
     <section>
@@ -85,6 +99,7 @@ export function Turn({ turn, index }: { turn: TurnData; index: number }) {
         {turn.steps.map((step) => (
           <StepEntries key={step.index} step={step} />
         ))}
+        {turn.error !== undefined && <TurnError error={turn.error} />}
       </div>
     </section>
   );
