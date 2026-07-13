@@ -1,8 +1,15 @@
 # eve-devtools
 
-In-app devtools for [eve](https://github.com/vercel/eve) agents: a floating panel that shows what the agent is doing, live — turns, reasoning, tool calls with their inputs and outputs, token usage, and timing.
+An open-source, in-app inspector for [eve](https://github.com/vercel/eve) agents. It turns an agent's event stream into a live visual trace of conversations, reasoning, tool calls, token usage, and timing.
 
-The panel renders in an isolated shadow root, so it never collides with the app's styles. It has no dependency on eve: the app hands it the agent's events. It makes no network requests.
+The inspector runs as a floating panel inside your app, making it easier to understand agent behavior without switching to a separate dashboard.
+
+## Features
+
+- Inspect turns, reasoning, tool inputs and outputs, errors, and usage as they happen.
+- Drop it into any browser app with a small framework-agnostic API or the React provider.
+- Keep application styles isolated with a shadow root.
+- Debug locally without sending data anywhere. The package makes no network requests.
 
 ## Install
 
@@ -12,7 +19,7 @@ bun add eve-devtools
 
 ## Use
 
-`mount()` appends the panel to `document.body` and returns a handle. Pass its `onEvent` to the agent — eve's observe-only callback — and the panel traces the conversation:
+`mount()` appends the panel to `document.body` and returns a handle. Pass its `onEvent` to eve's observe-only callback, and the panel traces the conversation:
 
 ```ts
 import { mount } from "eve-devtools";
@@ -52,15 +59,17 @@ function Chat() {
 }
 ```
 
-## Develop
+## Contributing
+
+Issues and pull requests are welcome. To run the project locally:
 
 ```sh
 bun install
-bun run dev    # demo page plus a minimal eve agent it traces live
+bun run dev    # demo page with a minimal eve agent traced live
 bun run check  # lint, format, and types
 ```
 
-The demo lives in `demo/` as its own package: a vite app, a minimal eve agent, and a vite plugin that runs the agent inside the dev server. The agent calls its model through the Vercel AI Gateway, so set `AI_GATEWAY_API_KEY` in `demo/.env.local`.
+The demo lives in `demo/` and calls its model through the Vercel AI Gateway. Set `AI_GATEWAY_API_KEY` in `demo/.env.local` before starting it.
 
 ## License
 
