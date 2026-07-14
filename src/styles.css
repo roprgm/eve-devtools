@@ -14,12 +14,16 @@
   --color-line-2: #404040;
   --color-line-3: #525252;
   --font-mono: ui-monospace, SFMono-Regular, monospace;
-  --shadow-panel: 0 2px 12px #00000059;
-  --shadow-panel-open: 0 4px 12px #0000004d, 0 16px 40px #00000066;
+  --shadow-launcher: 0 2px 12px #00000059;
 }
 
 :host {
   all: initial;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
   color-scheme: dark;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
@@ -28,7 +32,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.launcher {
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.safe-area {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
 .scroll {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-2) transparent;
 }
@@ -41,10 +56,4 @@
 .scroll::-webkit-scrollbar-thumb {
   background-color: var(--color-line-2);
   border-radius: 3px;
-}
-
-/* Animate only the panel's open/close; nested details (tool calls) toggle
-   instantly instead of lingering for the transition. */
-:host > details::details-content {
-  transition: content-visibility 300ms allow-discrete;
 }

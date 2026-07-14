@@ -1,0 +1,5 @@
+/* Changing the root width keeps the host DOM untouched. Wrapping or
+   transforming it would change how fixed and floating elements behave. */
+[data-eve-devtools-page] {
+  width: calc(100% - var(--eve-devtools-panel-width));
+}

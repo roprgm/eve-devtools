@@ -2,45 +2,28 @@ import { cn } from "cnfast";
 import type { ComponentChildren } from "preact";
 import { useRef } from "preact/hooks";
 
-export type Size = { width: number; height: number };
+type DragStart = { x: number; width: number };
 
-type Edge = "left" | "top" | "corner";
-
-type DragStart = { x: number; y: number; size: Size };
-
-function resizeFrom(
-  start: DragStart,
-  edge: Edge,
-  event: PointerEvent,
-  minSize: Size,
-): Size {
-  const dx = start.x - event.clientX;
-  const dy = start.y - event.clientY;
-  const size = { ...start.size };
-  if (edge !== "top") {
-    size.width = Math.max(minSize.width, start.size.width + dx);
-  }
-  if (edge !== "left") {
-    size.height = Math.max(minSize.height, start.size.height + dy);
-  }
-  return size;
+function clampWidth(width: number, minWidth: number, maxWidth: number): number {
+  return Math.min(maxWidth, Math.max(minWidth, width));
 }
 
-const handleClass = "absolute hidden touch-none group-open:block";
+function resizedWidth(
+  start: DragStart,
+  event: PointerEvent,
+  minWidth: number,
+  maxWidth: number,
+): number {
+  const dx = start.x - event.clientX;
+  return clampWidth(start.width + dx, minWidth, maxWidth);
+}
 
-const handles: { edge: Edge; class: string }[] = [
-  { edge: "left", class: "inset-y-3 -left-0.75 w-1.5 cursor-ew-resize" },
-  { edge: "top", class: "inset-x-3 -top-0.75 h-1.5 cursor-ns-resize" },
-  { edge: "corner", class: "-top-0.75 -left-0.75 size-3 cursor-nwse-resize" },
-];
-
-// The wrapper div is intentionally not positioned, so the absolute handles
-// anchor to the panel edges (the nearest positioned ancestor) while the
-// width and height styles apply to the content area only.
 export function Resizable(props: {
-  size: Size;
-  minSize: Size;
-  onResize: (size: Size) => void;
+  width: number;
+  minWidth: number;
+  maxWidth: number;
+  canResize: boolean;
+  onResize: (width: number) => void;
   children: ComponentChildren;
 }) {
   const dragStart = useRef<DragStart | null>(null);
@@ -51,39 +34,67 @@ export function Resizable(props: {
     handle.setPointerCapture(event.pointerId);
     dragStart.current = {
       x: event.clientX,
-      y: event.clientY,
-      size: props.size,
+      width: props.width,
     };
   }
 
-  function onPointerMove(event: PointerEvent, edge: Edge) {
+  function onPointerMove(event: PointerEvent) {
     if (dragStart.current === null) {
       return;
     }
-    props.onResize(resizeFrom(dragStart.current, edge, event, props.minSize));
+    props.onResize(
+      resizedWidth(dragStart.current, event, props.minWidth, props.maxWidth),
+    );
   }
 
   function onPointerUp() {
     dragStart.current = null;
   }
 
+  function onKeyDown(event: KeyboardEvent) {
+    const step = event.shiftKey ? 32 : 8;
+    let nextWidth = props.width;
+
+    if (event.key === "ArrowLeft") {
+      nextWidth += step;
+    } else if (event.key === "ArrowRight") {
+      nextWidth -= step;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    props.onResize(clampWidth(nextWidth, props.minWidth, props.maxWidth));
+  }
+
   return (
     <div
+      class="relative h-dvh"
       style={{
-        width: `${props.size.width}px`,
-        height: `${props.size.height}px`,
+        width: `${props.width}px`,
       }}
     >
       {props.children}
-      {handles.map((handle) => (
-        <div
-          key={handle.edge}
-          class={cn(handleClass, handle.class)}
+      {props.canResize && (
+        <hr
+          aria-label="Resize eve devtools"
+          aria-orientation="vertical"
+          aria-valuemin={props.minWidth}
+          aria-valuemax={props.maxWidth}
+          aria-valuenow={props.width}
+          tabIndex={0}
+          class={cn(
+            "absolute inset-y-0 -left-1 z-10 m-0 h-auto w-2 touch-none cursor-ew-resize border-0 p-0",
+            "after:absolute after:inset-y-0 after:left-1 after:w-px after:bg-line-2",
+            "hover:after:bg-line-3 focus-visible:after:bg-line-3 focus-visible:outline-none",
+          )}
+          onKeyDown={onKeyDown}
           onPointerDown={onPointerDown}
-          onPointerMove={(event) => onPointerMove(event, handle.edge)}
+          onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
         />
-      ))}
+      )}
     </div>
   );
 }

@@ -2,8 +2,10 @@ import {
   ArrowDownToLine,
   ArrowUpToLine,
   LucideProvider,
+  PanelRightClose,
   Wrench,
 } from "lucide-preact";
+import { useEffect, useState } from "preact/hooks";
 import { Logo } from "@/components/logo";
 import { Metric } from "@/components/metric";
 import { Resizable } from "@/components/resizable";
@@ -16,21 +18,50 @@ import { summarizeTurns } from "@/trace/summary";
 import type { Trace } from "@/trace/trace";
 import type { Turn as TurnData } from "@/trace/types";
 
-const defaultSize = { width: 380, height: 480 };
-const minSize = { width: 280, height: 132 };
+const defaultWidth = 380;
+const minPanelWidth = 280;
+const minPageWidth = 320;
+const minDockedWidth = minPanelWidth + minPageWidth;
 
-function turnsLabel(count: number): string {
-  if (count === 1) {
-    return "1 turn";
-  }
-  return `${count} turns`;
+function canDock(viewportWidth: number): boolean {
+  return viewportWidth >= minDockedWidth;
 }
 
-function Footer({ turns }: { turns: TurnData[] }) {
+function maximumPanelWidth(viewportWidth: number): number {
+  return Math.max(minPanelWidth, viewportWidth - minPageWidth);
+}
+
+function panelWidth(storedWidth: number, viewportWidth: number): number {
+  if (!canDock(viewportWidth)) {
+    return viewportWidth;
+  }
+  const maximumWidth = maximumPanelWidth(viewportWidth);
+  return Math.min(maximumWidth, Math.max(minPanelWidth, storedWidth));
+}
+
+function useViewportWidth(): number {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    function updateWidth() {
+      setWidth(window.innerWidth);
+    }
+
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, []);
+
+  return width;
+}
+
+function Header({ turns }: { turns: TurnData[] }) {
   const summary = summarizeTurns(turns);
   return (
-    <footer class="flex h-8 items-center border-t border-line-1 bg-background px-3">
-      <span class="text-xs text-foreground/50">{turnsLabel(turns.length)}</span>
+    <header class="flex h-11 shrink-0 items-center gap-2 border-b border-line-1 bg-background px-3 sm:h-8">
+      <Logo class="h-2.5" />
+      <span class="text-xs font-medium uppercase tracking-wide text-foreground/70">
+        eve-devtools
+      </span>
       <div class="ml-auto flex items-center gap-3">
         <Metric icon={<Wrench />}>{summary.tools}</Metric>
         <Metric icon={<ArrowDownToLine />}>
@@ -40,51 +71,97 @@ function Footer({ turns }: { turns: TurnData[] }) {
           {formatTokens(summary.outputTokens)}
         </Metric>
       </div>
-    </footer>
+    </header>
+  );
+}
+
+function CollapseButton({ onCollapse }: { onCollapse: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label="Collapse eve devtools"
+      class="launcher absolute z-10 flex size-11 cursor-pointer items-center justify-center rounded-xl border border-line-2 bg-background text-foreground shadow-launcher sm:size-8.5 [corner-shape:squircle]"
+      onClick={onCollapse}
+    >
+      <PanelRightClose />
+    </button>
   );
 }
 
 function Body({ turns }: { turns: TurnData[] }) {
   return (
-    <div class="flex h-full flex-col">
-      <ScrollArea>
-        {turns.length === 0 && (
-          <p class="px-3 py-6 text-center text-xs text-foreground/40">
-            No agent activity yet.
-          </p>
-        )}
-        {turns.map((turn, index) => (
-          <Turn key={turn.id} turn={turn} index={index + 1} />
-        ))}
-      </ScrollArea>
-      <Footer turns={turns} />
-    </div>
+    <ScrollArea>
+      {turns.length === 0 && (
+        <p class="px-3 py-6 text-center text-xs text-foreground/40">
+          No agent activity yet.
+        </p>
+      )}
+      {turns.map((turn, index) => (
+        <Turn key={turn.id} turn={turn} index={index + 1} />
+      ))}
+    </ScrollArea>
   );
 }
 
-export function Panel({ trace }: { trace: Trace }) {
+export function Panel({
+  trace,
+  onResize,
+}: {
+  trace: Trace;
+  onResize: (width: number | null) => void;
+}) {
   const turns = useTurns(trace);
   const [isOpen, setIsOpen] = useLocalStorage("open", false);
-  const [size, setSize] = useLocalStorage("size", defaultSize);
+  const [storedWidth, setStoredWidth] = useLocalStorage("width", defaultWidth);
+  const viewportWidth = useViewportWidth();
+  const isDocked = canDock(viewportWidth);
+  const width = panelWidth(storedWidth, viewportWidth);
+
+  useEffect(() => {
+    if (isOpen && isDocked) {
+      onResize(width);
+      return;
+    }
+    onResize(null);
+  }, [isDocked, isOpen, onResize, width]);
+
+  if (!isOpen) {
+    return (
+      <LucideProvider size={14} strokeWidth={2} class="shrink-0">
+        <button
+          type="button"
+          aria-label="Open eve devtools"
+          class="launcher fixed z-2147483647 flex size-11 cursor-pointer items-center justify-center rounded-xl border border-line-2 bg-background text-foreground shadow-launcher sm:size-8.5 [corner-shape:squircle]"
+          onClick={() => setIsOpen(true)}
+        >
+          <Logo class="h-2.5" />
+        </button>
+      </LucideProvider>
+    );
+  }
 
   return (
     <LucideProvider size={14} strokeWidth={2} class="shrink-0">
-      <details
-        open={isOpen}
-        onToggle={(event) => setIsOpen(event.currentTarget.open)}
-        class="group fixed right-3 bottom-3 z-2147483647 size-8.5 overflow-hidden rounded-xl border border-line-2 bg-background text-foreground shadow-panel transition-all duration-300 ease-in-out [corner-shape:squircle] [interpolate-size:allow-keywords] open:size-auto open:rounded-2xl open:bg-surface-1 open:shadow-panel-open"
+      <aside
+        aria-label="Eve devtools"
+        class="fixed inset-y-0 right-0 z-2147483647 bg-surface-1 text-foreground"
       >
-        <summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-          <header class="flex items-center justify-between whitespace-nowrap bg-background px-4 h-8 font-semibold opacity-0 transition-opacity duration-150 ease-in-out group-open:opacity-100 group-open:delay-100">
-            <span class="pl-3">eve-devtools</span>
-            <span class="text-foreground/80">×</span>
-          </header>
-          <Logo class="absolute top-4 left-4 h-2.5 -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out" />
-        </summary>
-        <Resizable size={size} minSize={minSize} onResize={setSize}>
-          <Body turns={turns} />
+        <Resizable
+          width={width}
+          minWidth={minPanelWidth}
+          maxWidth={maximumPanelWidth(viewportWidth)}
+          canResize={isDocked}
+          onResize={setStoredWidth}
+        >
+          <div class="safe-area flex h-full flex-col">
+            <Header turns={turns} />
+            <div class="min-h-0 flex-1">
+              <Body turns={turns} />
+            </div>
+          </div>
+          <CollapseButton onCollapse={() => setIsOpen(false)} />
         </Resizable>
-      </details>
+      </aside>
     </LucideProvider>
   );
 }

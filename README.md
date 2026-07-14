@@ -2,11 +2,13 @@
 
 An open-source, in-app inspector for [eve](https://github.com/vercel/eve) agents. It turns an agent's event stream into a live visual trace of conversations, reasoning, tool calls, token usage, and timing.
 
-The inspector runs as a floating panel inside your app, making it easier to understand agent behavior without switching to a separate dashboard.
+The inspector runs in a side panel that makes room for itself beside your app, making it easier to understand agent behavior without switching to a separate dashboard.
 
 ## Features
 
 - Inspect turns, reasoning, tool inputs and outputs, errors, and usage as they happen.
+- Resize the side panel without covering your app.
+- Use the full-screen panel on narrow mobile viewports.
 - Drop it into any browser app with a small framework-agnostic API or the React provider.
 - Keep application styles isolated with a shadow root.
 - Debug locally without sending data anywhere. The package makes no network requests.
