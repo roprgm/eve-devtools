@@ -35,7 +35,9 @@ export function ToolCall({ action }: { action: Action }) {
         </span>
         <StatusDot tone={statusTone[action.status]} />
         {action.durationMs !== undefined && (
-          <Metric label="Duration">{formatDuration(action.durationMs)}</Metric>
+          <Metric label="Duration" tabularNumbers>
+            {formatDuration(action.durationMs)}
+          </Metric>
         )}
         <span class="ml-auto flex shrink-0 items-center">
           <DisclosureChevron className="group-open/tool:-rotate-90" />

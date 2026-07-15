@@ -19,11 +19,13 @@ const gapClass: Record<MetricTone, string> = {
 export function Metric({
   icon,
   label,
+  tabularNumbers = false,
   tone = "neutral",
   children,
 }: {
   icon?: ComponentChildren;
   label: string;
+  tabularNumbers?: boolean;
   tone?: MetricTone;
   children: ComponentChildren;
 }) {
@@ -33,6 +35,7 @@ export function Metric({
       class={cn(
         "flex shrink-0 items-center text-xs leading-none [&>svg]:size-3.5",
         gapClass[tone],
+        tabularNumbers && "tabular-nums",
         toneClass[tone],
       )}
     >

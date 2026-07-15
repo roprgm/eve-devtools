@@ -44,7 +44,9 @@ function TurnHeader({ index, turn }: { index: number; turn: TurnData }) {
         <span title={startedAt} class="text-xs font-medium text-foreground/80">
           Turn {index}
         </span>
-        <Metric label="Duration">{formatDuration(elapsedMs(turn, now))}</Metric>
+        <Metric label="Duration" tabularNumbers>
+          {formatDuration(elapsedMs(turn, now))}
+        </Metric>
       </span>
       <span class="ml-auto flex min-w-0 items-center justify-end gap-2 overflow-hidden">
         <SummaryMetrics summary={summary} />
