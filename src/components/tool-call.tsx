@@ -1,4 +1,4 @@
-import { Clock, Wrench } from "lucide-preact";
+import { Wrench } from "lucide-preact";
 import { DisclosureChevron } from "@/components/disclosure-chevron";
 import { JsonView } from "@/components/json-view";
 import { Metric } from "@/components/metric";
@@ -34,12 +34,10 @@ export function ToolCall({ action }: { action: Action }) {
           {action.name}
         </span>
         <StatusDot tone={statusTone[action.status]} />
-        <span class="ml-auto flex shrink-0 items-center gap-1">
-          {action.durationMs !== undefined && (
-            <Metric label="Duration" icon={<Clock />}>
-              {formatDuration(action.durationMs)}
-            </Metric>
-          )}
+        {action.durationMs !== undefined && (
+          <Metric label="Duration">{formatDuration(action.durationMs)}</Metric>
+        )}
+        <span class="ml-auto flex shrink-0 items-center">
           <DisclosureChevron className="group-open/tool:-rotate-90" />
         </span>
       </summary>

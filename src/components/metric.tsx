@@ -15,14 +15,14 @@ const gapClass: Record<MetricTone, string> = {
   output: "gap-0.5",
 };
 
-// An icon paired with a compact value, e.g. a token count or a duration.
+// A compact labeled value, optionally paired with an icon.
 export function Metric({
   icon,
   label,
   tone = "neutral",
   children,
 }: {
-  icon: ComponentChildren;
+  icon?: ComponentChildren;
   label: string;
   tone?: MetricTone;
   children: ComponentChildren;
