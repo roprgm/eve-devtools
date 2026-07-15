@@ -86,6 +86,35 @@ bun run test   # behavior tests
 
 The demo lives in `demo/` and calls its model through the Vercel AI Gateway. Set `AI_GATEWAY_API_KEY` in `demo/.env.local` before starting it.
 
+## Releasing
+
+Publish releases manually from a clean, up-to-date `main` branch:
+
+```sh
+git checkout main
+git pull --ff-only origin main
+
+npm login                    # only needed when not already authenticated
+bun pm whoami
+bun pm pkg set version=0.0.4
+
+bun run check
+bun run test
+bun run build
+(cd demo && bun run build)
+bun publish --dry-run
+
+git add package.json
+git commit -m "Release v0.0.4"
+git tag v0.0.4
+git push origin main
+git push origin v0.0.4
+
+bun publish --access public
+```
+
+After publishing, verify the registry entry with `bun pm view eve-devtools@0.0.4`.
+
 ## License
 
 MIT
