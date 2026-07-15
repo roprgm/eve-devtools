@@ -15,6 +15,11 @@ describe("formatDuration", () => {
     expect(formatDuration(60_000)).toBe("1.00m");
     expect(formatDuration(3_600_000)).toBe("1.00h");
   });
+
+  test("promotes values that round across unit boundaries", () => {
+    expect(formatDuration(59_950)).toBe("1.00m");
+    expect(formatDuration(3_597_000)).toBe("1.00h");
+  });
 });
 
 describe("formatTokens", () => {

@@ -5,11 +5,19 @@ export function formatDuration(ms: number): string {
   }
   const seconds = ms / 1000;
   if (seconds < 60) {
-    return `${seconds.toPrecision(3)}s`;
+    const formattedSeconds = seconds.toPrecision(3);
+    if (Number(formattedSeconds) < 60) {
+      return `${formattedSeconds}s`;
+    }
+    return `${(Number(formattedSeconds) / 60).toPrecision(3)}m`;
   }
   const minutes = seconds / 60;
   if (minutes < 60) {
-    return `${minutes.toPrecision(3)}m`;
+    const formattedMinutes = minutes.toPrecision(3);
+    if (Number(formattedMinutes) < 60) {
+      return `${formattedMinutes}m`;
+    }
+    return `${(Number(formattedMinutes) / 60).toPrecision(3)}h`;
   }
   return `${(minutes / 60).toPrecision(3)}h`;
 }
