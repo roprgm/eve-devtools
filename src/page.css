@@ -1,0 +1,4 @@
+/* Changing only the width keeps the host DOM and positioning contexts intact. */
+[data-eve-devtools-page] {
+  width: calc(100% - var(--eve-devtools-panel-width));
+}

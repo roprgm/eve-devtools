@@ -1,21 +1,36 @@
 export function formatDuration(ms: number): string {
   if (ms < 1000) {
-    return `${Math.round(ms)}ms`;
+    const milliseconds = Math.min(999, Math.max(0, Math.round(ms)));
+    return `${milliseconds}ms`;
   }
   const seconds = ms / 1000;
   if (seconds < 60) {
-    return `${seconds.toFixed(1)}s`;
+    const formattedSeconds = seconds.toPrecision(3);
+    if (Number(formattedSeconds) < 60) {
+      return `${formattedSeconds}s`;
+    }
+    return `${(Number(formattedSeconds) / 60).toPrecision(3)}m`;
   }
-  const minutes = Math.floor(seconds / 60);
-  const rest = Math.floor(seconds % 60);
-  return `${minutes}:${rest.toString().padStart(2, "0")}`;
+  const minutes = seconds / 60;
+  if (minutes < 60) {
+    const formattedMinutes = minutes.toPrecision(3);
+    if (Number(formattedMinutes) < 60) {
+      return `${formattedMinutes}m`;
+    }
+    return `${(Number(formattedMinutes) / 60).toPrecision(3)}h`;
+  }
+  return `${(minutes / 60).toPrecision(3)}h`;
 }
 
 export function formatTokens(count: number): string {
   if (count < 1000) {
     return `${count}`;
   }
-  return `${(count / 1000).toFixed(1)}k`;
+  const thousands = Math.round(count / 1000);
+  if (thousands < 1000) {
+    return `${thousands}k`;
+  }
+  return `${Math.round(count / 1_000_000)}m`;
 }
 
 export function formatTime(iso: string): string {

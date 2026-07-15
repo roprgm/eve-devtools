@@ -13,13 +13,20 @@
   --color-line-1: #262626;
   --color-line-2: #404040;
   --color-line-3: #525252;
+  --color-focus: #8c8c8c;
+  --color-metric-input: oklch(0.77 0.11 235);
+  --color-metric-output: oklch(0.78 0.12 55);
   --font-mono: ui-monospace, SFMono-Regular, monospace;
-  --shadow-panel: 0 2px 12px #00000059;
-  --shadow-panel-open: 0 4px 12px #0000004d, 0 16px 40px #00000066;
+  --shadow-launcher: 0 2px 12px #00000059;
 }
 
 :host {
   all: initial;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
   color-scheme: dark;
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
@@ -28,7 +35,70 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(4px);
+  }
+}
+
+@keyframes control-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes disclosure-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+}
+
+.panel-enter {
+  animation: panel-enter 160ms ease-out;
+}
+
+.launcher {
+  right: max(0.75rem, env(safe-area-inset-right));
+  bottom: max(0.75rem, env(safe-area-inset-bottom));
+  animation: control-enter 120ms ease-out;
+}
+
+.safe-area {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.disclosure-summary {
+  list-style: none;
+}
+
+.disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure-summary:focus,
+.reasoning-toggle:focus {
+  outline: none;
+}
+
+.disclosure-summary:focus-visible,
+.reasoning-toggle:focus-visible {
+  box-shadow: inset 2px 0 var(--color-focus);
+}
+
+.disclosure-summary:focus-visible {
+  background-color: var(--color-surface-3);
+}
+
+details[open] > .disclosure-content {
+  animation: disclosure-enter 120ms ease-out;
+}
+
 .scroll {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--color-line-2) transparent;
 }
@@ -43,8 +113,16 @@
   border-radius: 3px;
 }
 
-/* Animate only the panel's open/close; nested details (tool calls) toggle
-   instantly instead of lingering for the transition. */
-:host > details::details-content {
-  transition: content-visibility 300ms allow-discrete;
+@media (prefers-reduced-motion: reduce) {
+  .panel-enter,
+  .launcher,
+  details[open] > .disclosure-content {
+    animation: none;
+  }
+
+  .disclosure-summary,
+  .disclosure-chevron,
+  .reasoning-toggle {
+    transition-duration: 0.01ms;
+  }
 }

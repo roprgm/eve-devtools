@@ -2,14 +2,28 @@
 
 An open-source, in-app inspector for [eve](https://github.com/vercel/eve) agents. It turns an agent's event stream into a live visual trace of conversations, reasoning, tool calls, token usage, and timing.
 
-The inspector runs as a floating panel inside your app, making it easier to understand agent behavior without switching to a separate dashboard.
+The inspector runs in a side panel that makes room for itself beside your app, making it easier to understand agent behavior without switching to a separate dashboard.
 
 ## Features
 
 - Inspect turns, reasoning, tool inputs and outputs, errors, and usage as they happen.
+- Resize the side panel while the normal page layout makes room for it.
+- Use the full-screen panel on narrow mobile viewports.
 - Drop it into any browser app with a small framework-agnostic API or the React provider.
 - Keep application styles isolated with a shadow root.
 - Debug locally without sending data anywhere. The package makes no network requests.
+
+### Fixed host elements
+
+The panel resizes normal and sticky page layouts without changing their positioning contexts. Browser-fixed elements remain anchored to the viewport by design. If your app has a control fixed to the right edge, offset it with the panel width exposed by the devtools:
+
+```css
+.fixed-control {
+  right: var(--eve-devtools-panel-width, 0px);
+}
+```
+
+The property returns to its previous value when the panel is collapsed or the devtools are unmounted.
 
 ## Install
 
@@ -67,9 +81,39 @@ Issues and pull requests are welcome. To run the project locally:
 bun install
 bun run dev    # demo page with a minimal eve agent traced live
 bun run check  # lint, format, and types
+bun run test   # behavior tests
 ```
 
 The demo lives in `demo/` and calls its model through the Vercel AI Gateway. Set `AI_GATEWAY_API_KEY` in `demo/.env.local` before starting it.
+
+## Releasing
+
+Publish releases manually from a clean, up-to-date `main` branch:
+
+```sh
+git checkout main
+git pull --ff-only origin main
+
+npm login                    # only needed when not already authenticated
+bun pm whoami
+bun pm pkg set version=0.0.4
+
+bun run check
+bun run test
+bun run build
+(cd demo && bun run build)
+bun publish --dry-run
+
+git add package.json
+git commit -m "Release v0.0.4"
+git tag v0.0.4
+git push origin main
+git push origin v0.0.4
+
+bun publish --access public
+```
+
+After publishing, verify the registry entry with `bun pm view eve-devtools@0.0.4`.
 
 ## License
 

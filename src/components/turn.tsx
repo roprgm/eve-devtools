@@ -1,21 +1,21 @@
 import {
-  ArrowDownToLine,
-  ArrowUpToLine,
   CircleAlert,
-  Clock,
+  CircleHelp,
   CornerDownRight,
   MessageSquare,
-  Wrench,
 } from "lucide-preact";
+import { useState } from "preact/hooks";
+import { DisclosureChevron } from "@/components/disclosure-chevron";
 import { Entry } from "@/components/entry";
 import { Metric } from "@/components/metric";
 import { Reasoning } from "@/components/reasoning";
 import { StatusDot } from "@/components/status-dot";
+import { SummaryMetrics } from "@/components/summary-metrics";
 import { ToolCall } from "@/components/tool-call";
 import { useNow } from "@/hooks/use-now";
-import { formatDuration, formatTime, formatTokens } from "@/trace/format";
+import { formatDuration, formatTime } from "@/trace/format";
 import { summarizeTurn } from "@/trace/summary";
-import type { Step, Turn as TurnData } from "@/trace/types";
+import type { Action, Step, Turn as TurnData } from "@/trace/types";
 
 // A completed turn has its final duration; a running one measures from its
 // start to the ticking clock.
@@ -32,29 +32,55 @@ function elapsedMs(turn: TurnData, now: number): number {
 function TurnHeader({ index, turn }: { index: number; turn: TurnData }) {
   const summary = summarizeTurn(turn);
   const now = useNow(turn.status === "running");
+  let startedAt: string | undefined;
+  if (turn.startedAt !== undefined) {
+    startedAt = `Started at ${formatTime(turn.startedAt)}`;
+  }
+
   return (
-    <header class="flex h-6 flex-wrap items-center gap-x-3 border-y border-line-1 bg-surface-2 px-3">
-      <div class="flex items-center gap-2">
+    <summary class="disclosure-summary flex h-6 cursor-pointer items-center gap-3 whitespace-nowrap border-b border-line-1 bg-surface-2 pl-3 pr-2">
+      <span class="flex shrink-0 items-center gap-2">
         <StatusDot tone={turn.status} />
-        <span class="text-xs font-medium text-foreground/80">Turn {index}</span>
-        {turn.startedAt !== undefined && (
-          <span class="text-xs tabular-nums text-foreground/30">
-            {formatTime(turn.startedAt)}
-          </span>
-        )}
-      </div>
-      <div class="ml-auto flex items-center gap-3">
-        <Metric icon={<Wrench />}>{summary.tools}</Metric>
-        <Metric icon={<ArrowDownToLine />}>
-          {formatTokens(summary.inputTokens)}
+        <span title={startedAt} class="text-xs font-medium text-foreground/80">
+          Turn {index}
+        </span>
+        <Metric label="Duration" tabularNumbers>
+          {formatDuration(elapsedMs(turn, now))}
         </Metric>
-        <Metric icon={<ArrowUpToLine />}>
-          {formatTokens(summary.outputTokens)}
-        </Metric>
-        <Metric icon={<Clock />}>{formatDuration(elapsedMs(turn, now))}</Metric>
-      </div>
-    </header>
+      </span>
+      <span class="ml-auto flex min-w-0 items-center justify-end gap-2 overflow-hidden">
+        <SummaryMetrics summary={summary} />
+        <span class="flex shrink-0 items-center">
+          <DisclosureChevron className="group-open/turn:-rotate-90" />
+        </span>
+      </span>
+    </summary>
   );
+}
+
+function ActionEntry({ action }: { action: Action }) {
+  if (action.question !== undefined) {
+    return (
+      <Entry icon={<CircleHelp />}>
+        <div class="flex flex-col gap-0.5">
+          <p>{action.question.prompt}</p>
+          {action.question.options.length > 0 && (
+            <ul class="list-disc pl-4 text-xs text-foreground/50">
+              {action.question.options.map((option) => (
+                <li key={option.id}>{option.label}</li>
+              ))}
+            </ul>
+          )}
+          {action.question.answer !== undefined && (
+            <p class="text-xs text-foreground/70">
+              Answer: {action.question.answer}
+            </p>
+          )}
+        </div>
+      </Entry>
+    );
+  }
+  return <ToolCall action={action} />;
 }
 
 function StepEntries({ step }: { step: Step }) {
@@ -62,7 +88,7 @@ function StepEntries({ step }: { step: Step }) {
     <>
       {step.reasoning !== undefined && <Reasoning text={step.reasoning} />}
       {step.actions.map((action) => (
-        <ToolCall key={action.callId} action={action} />
+        <ActionEntry key={action.callId} action={action} />
       ))}
       {step.response !== undefined && (
         <Entry icon={<CornerDownRight />}>
@@ -87,20 +113,28 @@ function TurnError({ error }: { error: NonNullable<TurnData["error"]> }) {
 }
 
 export function Turn({ turn, index }: { turn: TurnData; index: number }) {
+  const [expanded, setExpanded] = useState(true);
+
   return (
     <section>
-      <TurnHeader index={index} turn={turn} />
-      <div class="flex flex-col px-3 py-1 gap-0.5">
-        {turn.prompt !== undefined && (
-          <Entry icon={<MessageSquare />}>
-            <p>{turn.prompt}</p>
-          </Entry>
-        )}
-        {turn.steps.map((step) => (
-          <StepEntries key={step.index} step={step} />
-        ))}
-        {turn.error !== undefined && <TurnError error={turn.error} />}
-      </div>
+      <details
+        open={expanded}
+        class="group/turn"
+        onToggle={(event) => setExpanded(event.currentTarget.open)}
+      >
+        <TurnHeader index={index} turn={turn} />
+        <div class="disclosure-content flex flex-col gap-0.5 px-3 py-1">
+          {turn.prompt !== undefined && (
+            <Entry icon={<MessageSquare />}>
+              <p>{turn.prompt}</p>
+            </Entry>
+          )}
+          {turn.steps.map((step) => (
+            <StepEntries key={step.index} step={step} />
+          ))}
+          {turn.error !== undefined && <TurnError error={turn.error} />}
+        </div>
+      </details>
     </section>
   );
 }

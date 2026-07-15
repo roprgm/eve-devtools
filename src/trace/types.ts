@@ -19,10 +19,21 @@ export type TraceError = {
   details?: unknown;
 };
 
+export type Question = {
+  requestId: string;
+  prompt: string;
+  options: readonly {
+    id: string;
+    label: string;
+  }[];
+  answer?: string;
+};
+
 export type Action = {
   callId: string;
   name: string;
   status: ActionStatus;
+  question?: Question;
   startedAt?: string; // ISO timestamp, from the event's `meta.at`
   durationMs?: number;
   input?: unknown;

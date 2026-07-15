@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["ESNext", "DOM"],
-    "types": ["vite/client"],
+    "types": ["bun", "vite/client"],
     "module": "ESNext",
     "target": "ESNext",
     "moduleResolution": "bundler",

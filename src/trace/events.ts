@@ -16,6 +16,26 @@ export type ActionRequest = {
   input?: unknown;
 };
 
+type InputRequest = {
+  requestId: string;
+  prompt: string;
+  options?: readonly {
+    id: string;
+    label: string;
+  }[];
+  action: {
+    callId: string;
+    toolName: string;
+    input?: unknown;
+  };
+};
+
+type InputResponse = {
+  requestId: string;
+  optionId?: string;
+  text?: string;
+};
+
 type TraceEventBody =
   | { type: "turn.started"; data: { turnId: string } }
   | { type: "turn.completed"; data: { turnId: string } }
@@ -49,6 +69,18 @@ type TraceEventBody =
         stepIndex: number;
         actions: readonly ActionRequest[];
       };
+    }
+  | {
+      type: "input.requested";
+      data: {
+        turnId: string;
+        stepIndex: number;
+        requests: readonly InputRequest[];
+      };
+    }
+  | {
+      type: "client.input.responded";
+      data: { responses: readonly InputResponse[] };
     }
   | {
       type: "action.result";
