@@ -43,7 +43,7 @@ export function ToolCall({ action }: { action: Action }) {
           <DisclosureChevron className="group-open/tool:-rotate-90" />
         </span>
       </summary>
-      <div class="flex flex-col gap-2 pt-1 pb-2 pl-6">
+      <div class="disclosure-content flex flex-col gap-2 pt-1 pb-2 pl-6">
         {action.input !== undefined && (
           <Field label="Input" value={action.input} />
         )}

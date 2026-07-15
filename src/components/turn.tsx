@@ -123,7 +123,7 @@ export function Turn({ turn, index }: { turn: TurnData; index: number }) {
         onToggle={(event) => setExpanded(event.currentTarget.open)}
       >
         <TurnHeader index={index} turn={turn} />
-        <div class="flex flex-col px-3 py-1 gap-0.5">
+        <div class="disclosure-content flex flex-col gap-0.5 px-3 py-1">
           {turn.prompt !== undefined && (
             <Entry icon={<MessageSquare />}>
               <p>{turn.prompt}</p>

@@ -114,7 +114,7 @@ export function Panel({
     <LucideProvider size={14} strokeWidth={2} class="shrink-0">
       <aside
         aria-label="Eve devtools"
-        class="fixed inset-y-0 right-0 z-2147483647 overflow-hidden bg-surface-1 text-foreground"
+        class="panel-enter fixed inset-y-0 right-0 z-2147483647 overflow-hidden bg-surface-1 text-foreground"
       >
         <Resizable
           width={width}
