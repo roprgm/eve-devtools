@@ -1,43 +1,20 @@
-import {
-  ArrowDownToLine,
-  ArrowUpToLine,
-  LucideProvider,
-  PanelRightClose,
-  Wrench,
-} from "lucide-preact";
+import { LucideProvider, PanelRightClose } from "lucide-preact";
 import { useEffect, useState } from "preact/hooks";
 import { Logo } from "@/components/logo";
-import { Metric } from "@/components/metric";
 import { Resizable } from "@/components/resizable";
 import { ScrollArea } from "@/components/scroll-area";
 import { Turn } from "@/components/turn";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useTurns } from "@/hooks/use-turns";
-import { formatTokens } from "@/trace/format";
-import { summarizeTurns } from "@/trace/summary";
+import {
+  canDock,
+  defaultPanelWidth,
+  maximumPanelWidth,
+  minimumPanelWidth,
+  panelWidth,
+} from "@/panel-size";
 import type { Trace } from "@/trace/trace";
 import type { Turn as TurnData } from "@/trace/types";
-
-const defaultWidth = 380;
-const minPanelWidth = 280;
-const minPageWidth = 320;
-const minDockedWidth = minPanelWidth + minPageWidth;
-
-function canDock(viewportWidth: number): boolean {
-  return viewportWidth >= minDockedWidth;
-}
-
-function maximumPanelWidth(viewportWidth: number): number {
-  return Math.max(minPanelWidth, viewportWidth - minPageWidth);
-}
-
-function panelWidth(storedWidth: number, viewportWidth: number): number {
-  if (!canDock(viewportWidth)) {
-    return viewportWidth;
-  }
-  const maximumWidth = maximumPanelWidth(viewportWidth);
-  return Math.min(maximumWidth, Math.max(minPanelWidth, storedWidth));
-}
 
 function useViewportWidth(): number {
   const [width, setWidth] = useState(window.innerWidth);
@@ -54,23 +31,13 @@ function useViewportWidth(): number {
   return width;
 }
 
-function Header({ turns }: { turns: TurnData[] }) {
-  const summary = summarizeTurns(turns);
+function Header() {
   return (
     <header class="flex h-11 shrink-0 items-center gap-2 border-b border-line-1 bg-background px-3 sm:h-8">
       <Logo class="h-2.5" />
       <span class="text-xs font-medium uppercase tracking-wide text-foreground/70">
         eve-devtools
       </span>
-      <div class="ml-auto flex items-center gap-3">
-        <Metric icon={<Wrench />}>{summary.tools}</Metric>
-        <Metric icon={<ArrowDownToLine />}>
-          {formatTokens(summary.inputTokens)}
-        </Metric>
-        <Metric icon={<ArrowUpToLine />}>
-          {formatTokens(summary.outputTokens)}
-        </Metric>
-      </div>
     </header>
   );
 }
@@ -112,7 +79,10 @@ export function Panel({
 }) {
   const turns = useTurns(trace);
   const [isOpen, setIsOpen] = useLocalStorage("open", false);
-  const [storedWidth, setStoredWidth] = useLocalStorage("width", defaultWidth);
+  const [storedWidth, setStoredWidth] = useLocalStorage(
+    "width",
+    defaultPanelWidth,
+  );
   const viewportWidth = useViewportWidth();
   const isDocked = canDock(viewportWidth);
   const width = panelWidth(storedWidth, viewportWidth);
@@ -144,18 +114,18 @@ export function Panel({
     <LucideProvider size={14} strokeWidth={2} class="shrink-0">
       <aside
         aria-label="Eve devtools"
-        class="fixed inset-y-0 right-0 z-2147483647 bg-surface-1 text-foreground"
+        class="fixed inset-y-0 right-0 z-2147483647 overflow-hidden bg-surface-1 text-foreground"
       >
         <Resizable
           width={width}
-          minWidth={minPanelWidth}
+          minWidth={minimumPanelWidth}
           maxWidth={maximumPanelWidth(viewportWidth)}
           canResize={isDocked}
           onResize={setStoredWidth}
         >
-          <div class="safe-area flex h-full flex-col">
-            <Header turns={turns} />
-            <div class="min-h-0 flex-1">
+          <div class="safe-area flex h-full min-h-0 flex-col overflow-hidden">
+            <Header />
+            <div class="flex min-h-0 flex-1">
               <Body turns={turns} />
             </div>
           </div>

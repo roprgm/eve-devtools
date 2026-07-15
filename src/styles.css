@@ -13,6 +13,9 @@
   --color-line-1: #262626;
   --color-line-2: #404040;
   --color-line-3: #525252;
+  --color-focus: #8c8c8c;
+  --color-metric-input: oklch(0.77 0.11 235);
+  --color-metric-output: oklch(0.78 0.12 55);
   --font-mono: ui-monospace, SFMono-Regular, monospace;
   --shadow-launcher: 0 2px 12px #00000059;
 }
@@ -40,6 +43,28 @@
 .safe-area {
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.disclosure-summary {
+  list-style: none;
+}
+
+.disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure-summary:focus,
+.reasoning-toggle:focus {
+  outline: none;
+}
+
+.disclosure-summary:focus-visible,
+.reasoning-toggle:focus-visible {
+  box-shadow: inset 2px 0 var(--color-focus);
+}
+
+.disclosure-summary:focus-visible {
+  background-color: var(--color-surface-3);
 }
 
 .scroll {

@@ -9,8 +9,10 @@ export function Entry({
   children: ComponentChildren;
 }) {
   return (
-    <div class="flex gap-2.5 py-1">
-      <span class="mt-0.5 shrink-0 text-neutral-400">{icon}</span>
+    <div class="flex gap-2 py-1">
+      <span class="flex h-[1lh] w-3.5 shrink-0 items-center justify-center text-neutral-400 [&>svg]:size-3.5">
+        {icon}
+      </span>
       <div class="min-w-0 flex-1">{children}</div>
     </div>
   );

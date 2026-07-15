@@ -1,5 +1,5 @@
 import type { ActionRequest, TraceEvent } from "@/trace/events";
-import type { Action, Step, Turn } from "@/trace/types";
+import type { Action, Question, Step, Turn } from "@/trace/types";
 
 export type Projector = {
   push: (event: TraceEvent) => void;
@@ -19,12 +19,30 @@ function millisBetween(
   return Date.parse(end) - Date.parse(start);
 }
 
+function answerFor(
+  question: Question,
+  response: { optionId?: string; text?: string },
+): string | undefined {
+  const text = response.text?.trim();
+  if (text !== undefined && text !== "") {
+    return text;
+  }
+  if (response.optionId === undefined) {
+    return undefined;
+  }
+  return (
+    question.options.find((option) => option.id === response.optionId)?.label ??
+    response.optionId
+  );
+}
+
 // Folds eve stream events into the Turn tree, calling onChange with a fresh
 // snapshot after every event. The wire only reports completed, failed, and
 // rejected action results; running and aborted are synthesized here.
 export function createProjector(onChange: (turns: Turn[]) => void): Projector {
   const turns: Turn[] = [];
   const actionsByCallId = new Map<string, Action>();
+  const questionsByRequestId = new Map<string, Action>();
 
   function turnById(turnId: string): Turn | undefined {
     return turns.find((turn) => turn.id === turnId);
@@ -91,7 +109,7 @@ export function createProjector(onChange: (turns: Turn[]) => void): Projector {
         return;
       }
       case "message.appended": {
-        if (event.data.messageSoFar === "") {
+        if (event.data.messageSoFar.trim() === "") {
           return;
         }
         const step = stepAt(event.data.turnId, event.data.stepIndex);
@@ -101,7 +119,7 @@ export function createProjector(onChange: (turns: Turn[]) => void): Projector {
         return;
       }
       case "message.completed": {
-        if (event.data.message === null) {
+        if (event.data.message === null || event.data.message.trim() === "") {
           return;
         }
         const step = stepAt(event.data.turnId, event.data.stepIndex);
@@ -132,6 +150,46 @@ export function createProjector(onChange: (turns: Turn[]) => void): Projector {
           };
           actionsByCallId.set(request.callId, action);
           step.actions.push(action);
+        }
+        return;
+      }
+      case "input.requested": {
+        for (const request of event.data.requests) {
+          if (request.action.toolName !== "ask_question") {
+            continue;
+          }
+          let action = actionsByCallId.get(request.action.callId);
+          if (action === undefined) {
+            const step = stepAt(event.data.turnId, event.data.stepIndex);
+            if (step === undefined) {
+              continue;
+            }
+            action = {
+              callId: request.action.callId,
+              name: request.action.toolName,
+              status: "running",
+              startedAt: event.meta?.at,
+              input: request.action.input,
+            };
+            actionsByCallId.set(action.callId, action);
+            step.actions.push(action);
+          }
+          action.question = {
+            requestId: request.requestId,
+            prompt: request.prompt,
+            options: request.options ?? [],
+          };
+          questionsByRequestId.set(request.requestId, action);
+        }
+        return;
+      }
+      case "client.input.responded": {
+        for (const response of event.data.responses) {
+          const action = questionsByRequestId.get(response.requestId);
+          if (action?.question === undefined) {
+            continue;
+          }
+          action.question.answer = answerFor(action.question, response);
         }
         return;
       }
@@ -176,6 +234,7 @@ export function createProjector(onChange: (turns: Turn[]) => void): Projector {
       case "session.started": {
         turns.length = 0;
         actionsByCallId.clear();
+        questionsByRequestId.clear();
         return;
       }
       case "session.completed":

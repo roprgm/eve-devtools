@@ -1,4 +1,5 @@
-import { ChevronRight, Clock, Wrench } from "lucide-preact";
+import { Clock, Wrench } from "lucide-preact";
+import { DisclosureChevron } from "@/components/disclosure-chevron";
 import { JsonView } from "@/components/json-view";
 import { Metric } from "@/components/metric";
 import { StatusDot, type StatusTone } from "@/components/status-dot";
@@ -27,18 +28,20 @@ function Field({ label, value }: { label: string; value: unknown }) {
 export function ToolCall({ action }: { action: Action }) {
   return (
     <details class="group/tool">
-      <summary class="-mx-2 flex cursor-pointer list-none h-6 items-center gap-2 rounded-md px-2 transition-colors hover:bg-foreground/5 [&::-webkit-details-marker]:hidden">
-        <ChevronRight class="text-neutral-500 transition-transform group-open/tool:rotate-90" />
-        <Wrench class="text-neutral-400" />
+      <summary class="disclosure-summary -mx-2 flex h-6 cursor-pointer items-center gap-2 rounded-md pl-2 pr-1.5 transition-colors hover:bg-foreground/5">
+        <Wrench class="size-3.5 shrink-0 text-neutral-400" />
+        <span class="min-w-0 truncate font-mono text-xs text-foreground/90">
+          {action.name}
+        </span>
         <StatusDot tone={statusTone[action.status]} />
-        <span class="font-mono text-xs text-foreground/90">{action.name}</span>
-        {action.durationMs !== undefined && (
-          <span class="ml-auto pl-2">
-            <Metric icon={<Clock />}>
+        <span class="ml-auto flex shrink-0 items-center gap-1">
+          {action.durationMs !== undefined && (
+            <Metric label="Duration" icon={<Clock />}>
               {formatDuration(action.durationMs)}
             </Metric>
-          </span>
-        )}
+          )}
+          <DisclosureChevron className="group-open/tool:-rotate-90" />
+        </span>
       </summary>
       <div class="flex flex-col gap-2 pt-1 pb-2 pl-6">
         {action.input !== undefined && (

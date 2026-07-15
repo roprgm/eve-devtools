@@ -69,7 +69,7 @@ export function Resizable(props: {
 
   return (
     <div
-      class="relative h-dvh"
+      class="relative h-dvh overflow-hidden"
       style={{
         width: `${props.width}px`,
       }}
@@ -84,8 +84,8 @@ export function Resizable(props: {
           aria-valuenow={props.width}
           tabIndex={0}
           class={cn(
-            "absolute inset-y-0 -left-1 z-10 m-0 h-auto w-2 touch-none cursor-ew-resize border-0 p-0",
-            "after:absolute after:inset-y-0 after:left-1 after:w-px after:bg-line-2",
+            "absolute inset-y-0 left-0 z-10 m-0 h-auto w-2 touch-none cursor-ew-resize border-0 p-0",
+            "after:absolute after:inset-y-0 after:left-0 after:w-px after:bg-line-2",
             "hover:after:bg-line-3 focus-visible:after:bg-line-3 focus-visible:outline-none",
           )}
           onKeyDown={onKeyDown}

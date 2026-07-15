@@ -3,7 +3,13 @@ import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
-  plugins: [tailwindcss(), dts({ include: ["index.ts", "react.ts", "src"] })],
+  plugins: [
+    tailwindcss(),
+    dts({
+      include: ["index.ts", "react.ts", "src"],
+      exclude: ["src/**/*.test.ts"],
+    }),
+  ],
   resolve: { alias: { "@": `${import.meta.dirname}/src` } },
   build: {
     lib: {
